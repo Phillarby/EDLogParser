@@ -1,8 +1,7 @@
-﻿CREATE PROCEDURE [dbo].[AddAsset]
+﻿CREATE PROCEDURE [EDData].[AddAsset]
 	@ID INT OUTPUT,
 	@AssetTypeID INT,
 	@Description NVARCHAR(250) = NULL,
-	@Created DateTime, -- Galactic time
 	@ParentID INT = NULL
 AS
 	INSERT INTO [EDDATA].Asset (
@@ -14,7 +13,7 @@ AS
 	) VALUES (
 		@AssetTypeID,
 		@Description,
-		@Created,
+		GETDATE(),
 		0, --Assume assets will not be created as deleted
 		@ParentID)
 

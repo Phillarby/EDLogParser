@@ -1,7 +1,7 @@
 ﻿/*
 Journeys group together consecutive history items to identify specific trips
 */
-CREATE TABLE [dbo].[Journey]
+CREATE TABLE [EDData].[Journey]
 (
 	[Id] INT NOT NULL PRIMARY KEY, 
     [ProfileID] INT NULL, 

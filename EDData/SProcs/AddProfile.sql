@@ -1,6 +1,6 @@
 ﻿CREATE PROCEDURE [EDDATA].[AddProfile]
 	@Id int OUTPUT,
-	@SecurityToken NVARCHAR OUTPUT, 
+	@SecurityToken VARCHAR(36) OUTPUT, 
     @TokenExpiry DATETIME OUTPUT, 
 	@Commander NVARCHAR(150), 
     @Email NVARCHAR(150), 
@@ -10,13 +10,19 @@ AS
 	BEGIN TRY
 		BEGIN TRAN
 		
-			DECLARE @ProfileAssetType INT;
+			DECLARE @ProfileAssetType INT,
+					@Created DateTime
 			SELECT  @ProfileAssetType = 1, 
 			        @SecurityToken = NewID(),
-					@TokenExpiry = DATEADD(d, 2, GETDATE());
+					@Created = GetDate(),
+					@TokenExpiry = DATEADD(d, 2, @Created)
 		
 			--Create a new Asset to associated with the new profile
-			EXEC AddAsset @Id OUTPUT, @ProfileAssetType,  @Commander, GetDate, Null
+			EXEC EDData.AddAsset 
+				@Id = @Id OUTPUT, 
+				@AssetTypeID = @ProfileAssetType,  
+				@Description = @Commander, 
+				@ParentID = Null
 
 			--Create Profile Record
 			INSERT INTO [EDDATA].[Profile] (
@@ -30,17 +36,15 @@ AS
 				@Id,
 				@Commander,
 				@Email,
+				@Password,
 				@SecurityToken,
 				@TokenExpiry
 			)
 
-		COMMIT
+		COMMIT TRAN
 	END TRY
 
 	BEGIN CATCH
 	IF @@TRANCOUNT > 0 
 		ROLLBACK
 	END CATCH
-RETURN 0
-
-SELECT NEWID

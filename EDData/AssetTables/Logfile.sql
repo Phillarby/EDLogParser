@@ -1,4 +1,4 @@
-﻿CREATE TABLE [dbo].[Logfile]
+﻿CREATE TABLE [EDDATA].[Logfile]
 (
 	[Id] INT NOT NULL PRIMARY KEY, 
     [ProfileID] INT NOT NULL, 
