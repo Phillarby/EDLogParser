@@ -57,19 +57,23 @@
   <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
   <ItemGroup>
     <Folder Include="Properties" />
-    <Folder Include="Tables" />
+    <Folder Include="AssetTables" />
     <Folder Include="Schemas" />
     <Folder Include="SProcs" />
+    <Folder Include="LookupTables" />
   </ItemGroup>
   <ItemGroup>
-    <Build Include="Tables\Asset.sql" />
-    <Build Include="Tables\System.sql" />
-    <Build Include="Tables\Profile.sql" />
-    <Build Include="Tables\Journey.sql" />
-    <Build Include="Tables\History.sql" />
+    <Build Include="AssetTables\Asset.sql" />
+    <Build Include="AssetTables\System.sql" />
+    <Build Include="AssetTables\Profile.sql" />
+    <Build Include="AssetTables\Journey.sql" />
+    <Build Include="AssetTables\History.sql" />
     <Build Include="Schemas\EDData.sql" />
     <Build Include="SProcs\AddAsset.sql" />
-    <Build Include="Tables\Logfile.sql" />
+    <Build Include="AssetTables\Logfile.sql" />
+    <Build Include="SProcs\AddProfile.sql" />
+    <Build Include="Schemas\Lookup.sql" />
+    <Build Include="LookupTables\AssetType.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="EDData.refactorlog" />

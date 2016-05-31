@@ -1,6 +1,6 @@
 ﻿CREATE PROCEDURE [dbo].[AddAsset]
 	@ID INT OUTPUT,
-	@ItemTypeID INT,
+	@AssetTypeID INT,
 	@Description NVARCHAR(250) = NULL,
 	@Created DateTime, -- Galactic time
 	@ParentID INT = NULL
@@ -12,7 +12,7 @@ AS
 		[Deleted],
 		[ParentID]
 	) VALUES (
-		@ItemTypeID,
+		@AssetTypeID,
 		@Description,
 		@Created,
 		0, --Assume assets will not be created as deleted
