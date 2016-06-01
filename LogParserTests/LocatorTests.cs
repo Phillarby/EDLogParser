@@ -20,7 +20,7 @@ namespace LogParser.Tests
         [TestMethod()]
         public void getNetlogsTest()
         {
-            Locator.AppFolderPath = "C:\\edtest";
+            Locator.AppFolderPath = Locator.FindProductFolder();
             var netlogs = Locator.getNetlogs();
         }
     }
