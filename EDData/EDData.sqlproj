@@ -76,6 +76,7 @@
     <Build Include="SProcs\AddProfile.sql" />
     <Build Include="Schemas\Lookup.sql" />
     <Build Include="LookupTables\AssetType.sql" />
+    <Build Include="SProcs\AddLogFile.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="EDData.refactorlog" />
@@ -84,6 +85,6 @@
     <PostDeploy Include="PostDeployment\AssetTypes.sql" />
   </ItemGroup>
   <ItemGroup>
-    <PreDeploy Include="PreDeployment\PrepareDatabase.sql" />
+    <None Include="PreDeployment\PrepareDatabase.sql" />
   </ItemGroup>
 </Project>
