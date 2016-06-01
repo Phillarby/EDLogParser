@@ -10,7 +10,21 @@ namespace LogParser
     {
         static void Main(string[] args)
         {
-            Locator.getNetlogs();
+            Locator L = new Locator();
+
+            //Enable netlogging if not already enabled
+            Console.Write("Checking netlog is enabled: ");
+            if (!L.IsLoggingEnabled())
+            {
+                Console.WriteLine("Not enabled.  Turning on... ");
+                L.EnableVerboseNetlog();
+            }
+            else
+            {
+                Console.WriteLine("OK.");
+            }
+
+            Console.ReadLine();
 
         }
     }

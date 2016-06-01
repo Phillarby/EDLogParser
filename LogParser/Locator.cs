@@ -4,24 +4,30 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace LogParser
 {
     public class Locator
     {
-        public static string AppFolderPath;
+        public string AppFolderPath;
         
-        public static string NetLogFolder
+        public Locator()
+        {
+            AppFolderPath = FindProductFolder();
+        }
+
+        public string NetLogFolder
         {
             get { return AppFolderPath + "\\Logs"; }
         }
 
-        public static string AppConfig()
+        public string AppConfig()
         {
             return AppFolderPath + "\\AppConfig.xml";
         }
 
-        public static FileInfo[] getNetlogs()
+        public FileInfo[] getNetlogs()
         {
             var files = Directory.GetFiles(NetLogFolder).Where(x => x.Contains("netLog.")).ToArray();
             FileInfo[] fi = new FileInfo[files.Length];
@@ -32,6 +38,44 @@ namespace LogParser
             }
 
             return fi;
+        }
+
+        public bool IsLoggingEnabled()
+        {
+            bool ret = true;
+
+            XDocument doc = XDocument.Load(AppConfig());
+
+            //Check for verbose logging
+            var network = doc.Root.Elements().Where(x => x.Name == "Network").FirstOrDefault();
+            var verbose = network.Attributes("VerboseLogging").FirstOrDefault();
+
+            //No verbose logging enabled
+            if (verbose == null || verbose.Value != "1") ret = false;
+
+            return ret;
+
+        }
+
+        public void EnableVerboseNetlog()
+        {
+            XDocument doc = XDocument.Load(AppConfig());
+
+            //Check for verbose logging
+            var network = doc.Root.Elements().Where(x => x.Name == "Network").FirstOrDefault();
+            var verbose = network.Attributes("VerboseLogging").FirstOrDefault();
+
+            //No verbose logging enabled
+            if (verbose == null)
+            {
+                network.Add(new XAttribute("VerboseLogging", "1"));
+                verbose = network.Attributes("VerboseLogging").FirstOrDefault();
+            }
+
+            //Verbose logging disabled
+            if (verbose.Value != "1") verbose.Value = "1";
+
+            doc.Save(AppConfig());
 
         }
 
@@ -39,7 +83,7 @@ namespace LogParser
         /// Find the best match for the game folder
         /// </summary>
         /// <returns></returns>
-        public static string FindProductFolder()
+        public string FindProductFolder()
         {
             
             var userPath = Environment.GetEnvironmentVariable("USERPROFILE");
@@ -90,7 +134,7 @@ namespace LogParser
 
         }
 
-        private static string PickBestFolder(List<string> Folders)
+        private string PickBestFolder(List<string> Folders)
         {
             //Find the most recently used of all the game folders
             String MostRecentFolder = Folders.FirstOrDefault();
