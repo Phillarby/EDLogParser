@@ -62,7 +62,6 @@
     <Folder Include="SProcs" />
     <Folder Include="LookupTables" />
     <Folder Include="PostDeployment" />
-    <Folder Include="PreDeployment" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="AssetTables\Asset.sql" />
@@ -82,8 +81,5 @@
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="PostDeployment\AssetTypes.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <PreDeploy Include="PreDeployment\PrepareDatabase.sql" />
   </ItemGroup>
 </Project>
