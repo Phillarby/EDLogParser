@@ -7,6 +7,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows.Media.Media3D;
 using System.Drawing;
+using System.Xml.Linq;
 
 namespace LogParser
 {
@@ -21,37 +22,13 @@ namespace LogParser
         }
 
         DateTime _fileDate;
-        DateTime _gMTDate;
-        string _filename;
         int _linesParsed;
         string _currentSystem;
-        string _logFolder;
 
-        public Parser() : this(string.Empty)
+        public string ParseFile(FileInfo f)
         {
- 
-        }
+            StringBuilder sb = new StringBuilder();
 
-        public Parser(string LogFolder)
-        {
-            FileInfo[] files = getFiles(LogFolder);
-
-            foreach (FileInfo f in files)
-                ParseFile(f);
-
-        }
-
-        public FileInfo[] getFiles(string LogFolder)
-        {
-            var dir = new DirectoryInfo(LogFolder);
-            FileInfo[] files = dir.GetFiles();
-
-            //Ensure only netlog files are being processed
-            return files.Where(x => x.Name.Substring(0,6) == "netLog").ToArray();
-        }
-
-        public void ParseFile(FileInfo f)
-        {
             int line = 0; // Line counter
 
             //Open file for reading
@@ -62,16 +39,20 @@ namespace LogParser
             while (!reader.EndOfStream)
             {
                 line++;
-                ProcessLine(reader.ReadLine(), line);
+                var s = ProcessLine(reader.ReadLine(), line);
+                if (s != String.Empty) sb.AppendLine(s);
             }
 
             //Clean up and close
             reader.Close();
             file.Close();
+
+            return sb.Length == 0 ? String.Empty : sb.ToString();
         }
 
-        private void ProcessLine(string line, int LineNumber)
+        private string ProcessLine(string line, int LineNumber)
         {
+            string ret = string.Empty;
             LineType lineType;
 
             //identify line type
@@ -86,30 +67,48 @@ namespace LogParser
 
             //Process line
             if (lineType != LineType.NoInterest)
-                ExtractData(line, lineType);
+            {
+                ret = ExtractData(line, lineType);
+            }
 
             _linesParsed = LineNumber;
 
+            return ret;
+
         }
 
-        private void ExtractData(string Line, LineType Type)
+        private string ExtractData(string Line, LineType Type)
         {
+            StringBuilder sb = new StringBuilder();
+
             if (Type == LineType.Header)
             {
                 _fileDate = ReadHeaderLocalDateTime(Line);
+                sb.Append(String.Format("Header: {0}", _fileDate));
             }
 
             if (Type == LineType.SystemHit)
             {
                 var SystemName = ReadSystem(Line);
-                var Pos = ReadStarPos(Line);
-                var Time = ReadLineTime(Line);
+
+                //Only capture if this is a move to a different system
+                if (SystemName != _currentSystem)
+                {
+                    _currentSystem = SystemName;
+                    var Pos = ReadStarPos(Line);
+                    var Time = ReadLineTime(Line);
+                    sb.Append(String.Format("System: {0} ({1}, {2}, {3}) {4}", SystemName, Pos.X, Pos.Y, Pos.Z, Time));
+                }
+                 
             }
 
             if (Type == LineType.Screenshot)
             {
                 var Screenshot = ReadScreenshotFilename(Line);
+                sb.Append(String.Format("Screenie: {0}", Screenshot));
             }
+
+            return sb.ToString();
         }
 
         private DateTime ReadHeaderLocalDateTime(string Line)

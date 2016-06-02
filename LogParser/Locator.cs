@@ -17,6 +17,11 @@ namespace LogParser
             AppFolderPath = FindProductFolder();
         }
 
+        public Locator(string AppFolder)
+        {
+            AppFolderPath = AppFolder;
+        }
+
         public string NetLogFolder
         {
             get { return AppFolderPath + "\\Logs"; }
@@ -29,15 +34,11 @@ namespace LogParser
 
         public FileInfo[] getNetlogs()
         {
-            var files = Directory.GetFiles(NetLogFolder).Where(x => x.Contains("netLog.")).ToArray();
-            FileInfo[] fi = new FileInfo[files.Length];
+            var dir = new DirectoryInfo(NetLogFolder);
+            FileInfo[] files = dir.GetFiles();
 
-            for (int i = 0; i < files.Length; i++)
-            {
-                fi[i] = new FileInfo(files[i]);
-            }
-
-            return fi;
+            //Ensure only netlog files are being processed
+            return files.Where(x => x.Name.Substring(0, 6) == "netLog").ToArray();
         }
 
         public bool IsLoggingEnabled()

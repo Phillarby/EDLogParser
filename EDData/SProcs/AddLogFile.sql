@@ -26,7 +26,6 @@ AS
 			INSERT INTO [EDDATA].[LogFile] (
 				[Id],
 				[ProfileID], 
-				[LogfileName], 
 				[LogFileDate],
 				[LastParsed],
 				[LinesParsed]
