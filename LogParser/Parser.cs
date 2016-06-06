@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows.Media.Media3D;
-using System.Drawing;
-using System.Xml.Linq;
+using System.Xml;
 
 namespace LogParser
 {
@@ -16,54 +13,99 @@ namespace LogParser
         public enum LineType
         {
             Header,
-            SystemHit,
+            System,
             Screenshot,
             NoInterest
+        }
+
+        public string ScreenshotPath
+        {
+            private get; set;
         }
 
         DateTime _fileDate;
         int _linesParsed;
         string _currentSystem;
+        XmlDocument _doc;
+        
 
-        public string ParseFile(FileInfo f)
+        public XmlElement ParseFile(FileInfo f, XmlDocument x)
         {
-            StringBuilder sb = new StringBuilder();
+            return ParseFile(f, x, 0);
+        }
 
+        public XmlElement ParseFile(FileInfo f, XmlDocument x, int readLines)
+        {
             int line = 0; // Line counter
+            _doc = x;
+
+            //Create XML file node
+            XmlElement ret = _doc.CreateElement(string.Empty, "File", string.Empty);
+            XmlAttribute filename = _doc.CreateAttribute("Filename");
+
+            filename.Value = f.Name;
+            ret.Attributes.Append(filename);
 
             //Open file for reading
             var file = f.OpenRead();
             StreamReader reader = new StreamReader(file);
 
-            //Read the file line by line
+            //Navigate to start line
+            for (int i = 0; i < readLines; i++)
+            {
+                reader.ReadLine();
+                line = i;
+            }
+
+            //Process the file line by line until done
             while (!reader.EndOfStream)
             {
+                //Add a new XML element if the line contains useful data
+                var lineContent = ProcessLine(reader.ReadLine(), line);
+                if (lineContent != null)
+                    ret.AppendChild(lineContent);
+
+
+                //Increment line counter
                 line++;
-                var s = ProcessLine(reader.ReadLine(), line);
-                if (s != String.Empty) sb.AppendLine(s);
             }
 
             //Clean up and close
             reader.Close();
             file.Close();
 
-            return sb.Length == 0 ? String.Empty : sb.ToString();
+
+            //All done
+            return ret;
         }
 
-        private string ProcessLine(string line, int LineNumber)
+        private XmlElement ProcessLine(string line, int LineNumber)
         {
-            string ret = string.Empty;
+            XmlElement ret;
             LineType lineType;
 
             //identify line type
-            if (LineNumber == 1)
+            if (LineNumber == 0)
+            {
+                //Header is always the first line in the log file
                 lineType = LineType.Header;
+                ret = _doc.CreateElement("Header");
+            }
             else if (line.Contains("System:") && line.Contains("StarPos:"))
-                lineType = LineType.SystemHit;
+            {
+                lineType = LineType.System;
+                ret = _doc.CreateElement("System");
+            }
             else if (line.Contains("SCREENSHOT: Saved"))
+            {
                 lineType = LineType.Screenshot;
+                ret = _doc.CreateElement("Screenshot");
+            }
             else
+            {
                 lineType = LineType.NoInterest;
+                ret = null;
+            }
 
             //Process line
             if (lineType != LineType.NoInterest)
@@ -74,20 +116,25 @@ namespace LogParser
             _linesParsed = LineNumber;
 
             return ret;
-
         }
 
-        private string ExtractData(string Line, LineType Type)
+        private XmlElement ExtractData(string Line, LineType Type)
         {
-            StringBuilder sb = new StringBuilder();
+            XmlElement ret = null;
 
             if (Type == LineType.Header)
             {
                 _fileDate = ReadHeaderLocalDateTime(Line);
-                sb.Append(String.Format("Header: {0}", _fileDate));
+                ret = _doc.CreateElement("Header");
+
+                //Add element attributes
+                XmlAttribute ts = _doc.CreateAttribute("TS");
+                ts.Value = _fileDate.ToString("yyyy-MM-ddTHH:mm:ss");
+
+                ret.Attributes.Append(ts);
             }
 
-            if (Type == LineType.SystemHit)
+            if (Type == LineType.System)
             {
                 var SystemName = ReadSystem(Line);
 
@@ -97,18 +144,43 @@ namespace LogParser
                     _currentSystem = SystemName;
                     var Pos = ReadStarPos(Line);
                     var Time = ReadLineTime(Line);
-                    sb.Append(String.Format("System: {0} ({1}, {2}, {3}) {4}", SystemName, Pos.X, Pos.Y, Pos.Z, Time));
+
+                    ret = _doc.CreateElement("System");
+                    ret.InnerText = SystemName;
+
+                    //Add element attributes
+                    XmlAttribute ts = _doc.CreateAttribute("TS");
+                    XmlAttribute x = _doc.CreateAttribute("X");
+                    XmlAttribute y = _doc.CreateAttribute("Y");
+                    XmlAttribute z = _doc.CreateAttribute("Z");
+
+                    ts.Value = Time.ToString("yyyy-MM-ddTHH:mm:ss");
+                    x.Value = Pos.X.ToString();
+                    y.Value = Pos.Y.ToString();
+                    z.Value = Pos.Z.ToString();
+
+                    ret.Attributes.Append(ts);
+                    ret.Attributes.Append(x);
+                    ret.Attributes.Append(y);
+                    ret.Attributes.Append(z);
                 }
-                 
             }
 
             if (Type == LineType.Screenshot)
             {
                 var Screenshot = ReadScreenshotFilename(Line);
-                sb.Append(String.Format("Screenie: {0}", Screenshot));
+                var Time = ReadLineTime(Line);
+
+                ret = _doc.CreateElement("screenshot");
+                ret.InnerText = Screenshot.Replace("\\ED_Pictures\\", ScreenshotPath);
+
+                //Add element attributes
+                XmlAttribute ts = _doc.CreateAttribute("TS");
+                ts.Value = Time.ToString("yyyy-MM-ddTHH:mm:ss");
+                ret.Attributes.Append(ts);
             }
 
-            return sb.ToString();
+            return ret;
         }
 
         private DateTime ReadHeaderLocalDateTime(string Line)

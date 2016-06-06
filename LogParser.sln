@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogParserTests", "LogParser
 EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "EDData", "EDData\EDData.sqlproj", "{C08595F8-F374-4221-AABA-03AE43B494C5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Notifier", "Notifier\Notifier.csproj", "{D3E1C8F1-F011-4560-8632-F367F3F3F83D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataModel", "DataModel\DataModel.csproj", "{7FD8C626-D93B-4359-8467-CB1317C1DADF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,6 +33,14 @@ Global
 		{C08595F8-F374-4221-AABA-03AE43B494C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C08595F8-F374-4221-AABA-03AE43B494C5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C08595F8-F374-4221-AABA-03AE43B494C5}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{D3E1C8F1-F011-4560-8632-F367F3F3F83D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3E1C8F1-F011-4560-8632-F367F3F3F83D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3E1C8F1-F011-4560-8632-F367F3F3F83D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3E1C8F1-F011-4560-8632-F367F3F3F83D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FD8C626-D93B-4359-8467-CB1317C1DADF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FD8C626-D93B-4359-8467-CB1317C1DADF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FD8C626-D93B-4359-8467-CB1317C1DADF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FD8C626-D93B-4359-8467-CB1317C1DADF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

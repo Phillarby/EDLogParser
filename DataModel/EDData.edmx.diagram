@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="996f3af83bb448b9aeaaecec766a589a" Name="Diagram1">
+        <EntityTypeShape EntityType="EDDataModel.C__RefactorLog" Width="1.5" PointX="0.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="EDDataModel.Asset" Width="1.5" PointX="0.75" PointY="6.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="EDDataModel.History" Width="1.5" PointX="5.25" PointY="11.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="EDDataModel.Journey" Width="1.5" PointX="7.5" PointY="9.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="EDDataModel.Logfile" Width="1.5" PointX="5.25" PointY="7.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="EDDataModel.Profile" Width="1.5" PointX="3" PointY="11.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="EDDataModel.System" Width="1.5" PointX="3" PointY="15.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="EDDataModel.AssetType" Width="1.5" PointX="2.75" PointY="0.75" IsExpanded="true" />
+        <AssociationConnector Association="EDDataModel.FK_History_Asset" ManuallyRouted="false" />
+        <AssociationConnector Association="EDDataModel.FK_Journey_Asset" ManuallyRouted="false" />
+        <AssociationConnector Association="EDDataModel.FK_Logfiles_Asset" ManuallyRouted="false" />
+        <AssociationConnector Association="EDDataModel.FK_Profile_Asset" ManuallyRouted="false" />
+        <AssociationConnector Association="EDDataModel.FK_System_Asset" ManuallyRouted="false" />
+        <AssociationConnector Association="EDDataModel.FK_History_Profile" ManuallyRouted="false" />
+        <AssociationConnector Association="EDDataModel.FK_History_System" ManuallyRouted="false" />
+        <AssociationConnector Association="EDDataModel.FK_Journey_End" ManuallyRouted="false" />
+        <AssociationConnector Association="EDDataModel.FK_Journey_Start" ManuallyRouted="false" />
+        <AssociationConnector Association="EDDataModel.FK_Journey_Profile" ManuallyRouted="false" />
+        <AssociationConnector Association="EDDataModel.FK_Logfiles_Profile" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

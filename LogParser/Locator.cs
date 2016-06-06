@@ -10,13 +10,28 @@ namespace LogParser
 {
     public class Locator
     {
-        public string AppFolderPath;
+        public string AppFolderPath
+        {
+            get; private set;
+        }
+
+        public string ScreenshotFolder
+        {
+            get; private set;
+        }
         
+        /// <summary>
+        /// Standard constructor intiaition searhc for applicaiton folders
+        /// </summary>
         public Locator()
         {
             AppFolderPath = FindProductFolder();
         }
 
+        /// <summary>
+        /// Force a specific game app folder path during construction
+        /// </summary>
+        /// <param name="AppFolder">Injected application folder path</param>
         public Locator(string AppFolder)
         {
             AppFolderPath = AppFolder;
@@ -88,10 +103,12 @@ namespace LogParser
         {
             
             var userPath = Environment.GetEnvironmentVariable("USERPROFILE");
+            ScreenshotFolder = userPath + @"\Pictures\Frontier Developments\Elite Dangerous\";
 
             var steamPath = @"C:\program files (x86)\Steam\steamapps\common\Elite Dangerous\Products\";
             var frontierPath = userPath + @"\AppData\Local\Frontier_Developments\Products\";
             var progFilesPath = @"C:\Program Files (x86)\Frontier\Products\";
+            
 
             //Check if steam path exists
             bool steam = System.IO.Directory.Exists(steamPath);

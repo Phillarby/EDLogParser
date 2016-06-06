@@ -1,0 +1,731 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="EDDataModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="__RefactorLog">
+          <Key>
+            <PropertyRef Name="OperationKey" />
+          </Key>
+          <Property Name="OperationKey" Type="uniqueidentifier" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Asset">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ItemTypeID" Type="int" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="250" />
+          <Property Name="Created" Type="datetime" />
+          <Property Name="Deleted" Type="bit" />
+          <Property Name="ParentID" Type="int" />
+        </EntityType>
+        <EntityType Name="History">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" />
+          <Property Name="ProfileID" Type="int" Nullable="false" />
+          <Property Name="Date" Type="datetime" Nullable="false" />
+          <Property Name="SystemID" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Journey">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" />
+          <Property Name="ProfileID" Type="int" />
+          <Property Name="Name" Type="nvarchar" MaxLength="50" />
+          <Property Name="HistoryStartID" Type="int" />
+          <Property Name="HistoryEndID" Type="int" />
+        </EntityType>
+        <EntityType Name="Logfile">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" />
+          <Property Name="ProfileID" Type="int" Nullable="false" />
+          <Property Name="LogfileName" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="LogFileDate" Type="datetime" Nullable="false" />
+          <Property Name="LastParsed" Type="datetime" Nullable="false" />
+          <Property Name="LinesParsed" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Profile">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" />
+          <Property Name="Commander" Type="nvarchar" MaxLength="150" Nullable="false" />
+          <Property Name="Email" Type="nvarchar" MaxLength="150" Nullable="false" />
+          <Property Name="EmailValidated" Type="bit" Nullable="false" />
+          <Property Name="Password" Type="nvarchar" MaxLength="256" Nullable="false" />
+          <Property Name="SecurityToken" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="TokenExpiry" Type="datetime" Nullable="false" />
+        </EntityType>
+        <EntityType Name="System">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="50" />
+          <Property Name="X" Type="float" />
+          <Property Name="Y" Type="nchar" MaxLength="10" />
+          <Property Name="Z" Type="nchar" MaxLength="10" />
+          <Property Name="Added" Type="datetime" />
+          <Property Name="Validated" Type="datetime" />
+        </EntityType>
+        <EntityType Name="AssetType">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="SortOrder" Type="int" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+        </EntityType>
+        <Association Name="FK_History_Asset">
+          <End Role="Asset" Type="Self.Asset" Multiplicity="1" />
+          <End Role="History" Type="Self.History" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Asset">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="History">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_History_Profile">
+          <End Role="Profile" Type="Self.Profile" Multiplicity="1" />
+          <End Role="History" Type="Self.History" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Profile">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="History">
+              <PropertyRef Name="ProfileID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_History_System">
+          <End Role="System" Type="Self.System" Multiplicity="1" />
+          <End Role="History" Type="Self.History" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="System">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="History">
+              <PropertyRef Name="SystemID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Journey_Asset">
+          <End Role="Asset" Type="Self.Asset" Multiplicity="1" />
+          <End Role="Journey" Type="Self.Journey" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Asset">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Journey">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Journey_End">
+          <End Role="History" Type="Self.History" Multiplicity="0..1" />
+          <End Role="Journey" Type="Self.Journey" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="History">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Journey">
+              <PropertyRef Name="HistoryEndID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Journey_Profile">
+          <End Role="Profile" Type="Self.Profile" Multiplicity="0..1" />
+          <End Role="Journey" Type="Self.Journey" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Profile">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Journey">
+              <PropertyRef Name="ProfileID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Journey_Start">
+          <End Role="History" Type="Self.History" Multiplicity="0..1" />
+          <End Role="Journey" Type="Self.Journey" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="History">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Journey">
+              <PropertyRef Name="HistoryStartID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Logfiles_Asset">
+          <End Role="Asset" Type="Self.Asset" Multiplicity="1" />
+          <End Role="Logfile" Type="Self.Logfile" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Asset">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Logfile">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Logfiles_Profile">
+          <End Role="Profile" Type="Self.Profile" Multiplicity="1" />
+          <End Role="Logfile" Type="Self.Logfile" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Profile">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Logfile">
+              <PropertyRef Name="ProfileID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Profile_Asset">
+          <End Role="Asset" Type="Self.Asset" Multiplicity="1" />
+          <End Role="Profile" Type="Self.Profile" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Asset">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Profile">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_System_Asset">
+          <End Role="Asset" Type="Self.Asset" Multiplicity="1" />
+          <End Role="System" Type="Self.System" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Asset">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="System">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Function Name="AddAsset" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="EDDATA">
+          <Parameter Name="ID" Type="int" Mode="InOut" />
+          <Parameter Name="AssetTypeID" Type="int" Mode="In" />
+          <Parameter Name="Description" Type="nvarchar" Mode="In" />
+          <Parameter Name="ParentID" Type="int" Mode="In" />
+        </Function>
+        <Function Name="AddLogFile" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="EDDATA">
+          <Parameter Name="Id" Type="int" Mode="InOut" />
+          <Parameter Name="ProfileID" Type="int" Mode="In" />
+          <Parameter Name="Filename" Type="varchar" Mode="In" />
+          <Parameter Name="FileDate" Type="datetime" Mode="In" />
+          <Parameter Name="LastParse" Type="datetime" Mode="In" />
+          <Parameter Name="LinesParsed" Type="int" Mode="In" />
+        </Function>
+        <Function Name="AddProfile" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="EDDATA">
+          <Parameter Name="Id" Type="int" Mode="InOut" />
+          <Parameter Name="SecurityToken" Type="varchar" Mode="InOut" />
+          <Parameter Name="TokenExpiry" Type="datetime" Mode="InOut" />
+          <Parameter Name="Commander" Type="nvarchar" Mode="In" />
+          <Parameter Name="Email" Type="nvarchar" Mode="In" />
+          <Parameter Name="Password" Type="nvarchar" Mode="In" />
+        </Function>
+        <EntityContainer Name="EDDataModelStoreContainer">
+          <EntitySet Name="__RefactorLog" EntityType="Self.__RefactorLog" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Asset" EntityType="Self.Asset" Schema="EDDATA" store:Type="Tables" />
+          <EntitySet Name="History" EntityType="Self.History" Schema="EDDATA" store:Type="Tables" />
+          <EntitySet Name="Journey" EntityType="Self.Journey" Schema="EDDATA" store:Type="Tables" />
+          <EntitySet Name="Logfile" EntityType="Self.Logfile" Schema="EDDATA" store:Type="Tables" />
+          <EntitySet Name="Profile" EntityType="Self.Profile" Schema="EDDATA" store:Type="Tables" />
+          <EntitySet Name="System" EntityType="Self.System" Schema="EDDATA" store:Type="Tables" />
+          <EntitySet Name="AssetType" EntityType="Self.AssetType" Schema="Lookup" store:Type="Tables" />
+          <AssociationSet Name="FK_History_Asset" Association="Self.FK_History_Asset">
+            <End Role="Asset" EntitySet="Asset" />
+            <End Role="History" EntitySet="History" />
+          </AssociationSet>
+          <AssociationSet Name="FK_History_Profile" Association="Self.FK_History_Profile">
+            <End Role="Profile" EntitySet="Profile" />
+            <End Role="History" EntitySet="History" />
+          </AssociationSet>
+          <AssociationSet Name="FK_History_System" Association="Self.FK_History_System">
+            <End Role="System" EntitySet="System" />
+            <End Role="History" EntitySet="History" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Journey_Asset" Association="Self.FK_Journey_Asset">
+            <End Role="Asset" EntitySet="Asset" />
+            <End Role="Journey" EntitySet="Journey" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Journey_End" Association="Self.FK_Journey_End">
+            <End Role="History" EntitySet="History" />
+            <End Role="Journey" EntitySet="Journey" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Journey_Profile" Association="Self.FK_Journey_Profile">
+            <End Role="Profile" EntitySet="Profile" />
+            <End Role="Journey" EntitySet="Journey" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Journey_Start" Association="Self.FK_Journey_Start">
+            <End Role="History" EntitySet="History" />
+            <End Role="Journey" EntitySet="Journey" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Logfiles_Asset" Association="Self.FK_Logfiles_Asset">
+            <End Role="Asset" EntitySet="Asset" />
+            <End Role="Logfile" EntitySet="Logfile" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Logfiles_Profile" Association="Self.FK_Logfiles_Profile">
+            <End Role="Profile" EntitySet="Profile" />
+            <End Role="Logfile" EntitySet="Logfile" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Profile_Asset" Association="Self.FK_Profile_Asset">
+            <End Role="Asset" EntitySet="Asset" />
+            <End Role="Profile" EntitySet="Profile" />
+          </AssociationSet>
+          <AssociationSet Name="FK_System_Asset" Association="Self.FK_System_Asset">
+            <End Role="Asset" EntitySet="Asset" />
+            <End Role="System" EntitySet="System" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="EDDataModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="C__RefactorLog">
+          <Key>
+            <PropertyRef Name="OperationKey" />
+          </Key>
+          <Property Name="OperationKey" Type="Guid" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Asset">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ItemTypeID" Type="Int32" Nullable="false" />
+          <Property Name="Description" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="Deleted" Type="Boolean" />
+          <Property Name="ParentID" Type="Int32" />
+          <NavigationProperty Name="History" Relationship="Self.FK_History_Asset" FromRole="Asset" ToRole="History" />
+          <NavigationProperty Name="Journey" Relationship="Self.FK_Journey_Asset" FromRole="Asset" ToRole="Journey" />
+          <NavigationProperty Name="Logfile" Relationship="Self.FK_Logfiles_Asset" FromRole="Asset" ToRole="Logfile" />
+          <NavigationProperty Name="Profile" Relationship="Self.FK_Profile_Asset" FromRole="Asset" ToRole="Profile" />
+          <NavigationProperty Name="System" Relationship="Self.FK_System_Asset" FromRole="Asset" ToRole="System" />
+        </EntityType>
+        <EntityType Name="History">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" />
+          <Property Name="ProfileID" Type="Int32" Nullable="false" />
+          <Property Name="Date" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="SystemID" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Asset" Relationship="Self.FK_History_Asset" FromRole="History" ToRole="Asset" />
+          <NavigationProperty Name="Profile" Relationship="Self.FK_History_Profile" FromRole="History" ToRole="Profile" />
+          <NavigationProperty Name="System" Relationship="Self.FK_History_System" FromRole="History" ToRole="System" />
+          <NavigationProperty Name="Journeys" Relationship="Self.FK_Journey_End" FromRole="History" ToRole="Journey" />
+          <NavigationProperty Name="Journeys1" Relationship="Self.FK_Journey_Start" FromRole="History" ToRole="Journey" />
+        </EntityType>
+        <EntityType Name="Journey">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" />
+          <Property Name="ProfileID" Type="Int32" />
+          <Property Name="Name" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="HistoryStartID" Type="Int32" />
+          <Property Name="HistoryEndID" Type="Int32" />
+          <NavigationProperty Name="Asset" Relationship="Self.FK_Journey_Asset" FromRole="Journey" ToRole="Asset" />
+          <NavigationProperty Name="History" Relationship="Self.FK_Journey_End" FromRole="Journey" ToRole="History" />
+          <NavigationProperty Name="History1" Relationship="Self.FK_Journey_Start" FromRole="Journey" ToRole="History" />
+          <NavigationProperty Name="Profile" Relationship="Self.FK_Journey_Profile" FromRole="Journey" ToRole="Profile" />
+        </EntityType>
+        <EntityType Name="Logfile">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" />
+          <Property Name="ProfileID" Type="Int32" Nullable="false" />
+          <Property Name="LogfileName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="LogFileDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastParsed" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LinesParsed" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Asset" Relationship="Self.FK_Logfiles_Asset" FromRole="Logfile" ToRole="Asset" />
+          <NavigationProperty Name="Profile" Relationship="Self.FK_Logfiles_Profile" FromRole="Logfile" ToRole="Profile" />
+        </EntityType>
+        <EntityType Name="Profile">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" />
+          <Property Name="Commander" Type="String" MaxLength="150" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Email" Type="String" MaxLength="150" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="EmailValidated" Type="Boolean" Nullable="false" />
+          <Property Name="Password" Type="String" MaxLength="256" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="SecurityToken" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="TokenExpiry" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="Asset" Relationship="Self.FK_Profile_Asset" FromRole="Profile" ToRole="Asset" />
+          <NavigationProperty Name="Histories" Relationship="Self.FK_History_Profile" FromRole="Profile" ToRole="History" />
+          <NavigationProperty Name="Journeys" Relationship="Self.FK_Journey_Profile" FromRole="Profile" ToRole="Journey" />
+          <NavigationProperty Name="Logfiles" Relationship="Self.FK_Logfiles_Profile" FromRole="Profile" ToRole="Logfile" />
+        </EntityType>
+        <EntityType Name="System">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" />
+          <Property Name="Name" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="X" Type="Double" />
+          <Property Name="Y" Type="String" MaxLength="10" FixedLength="true" Unicode="true" />
+          <Property Name="Z" Type="String" MaxLength="10" FixedLength="true" Unicode="true" />
+          <Property Name="Added" Type="DateTime" Precision="3" />
+          <Property Name="Validated" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Asset" Relationship="Self.FK_System_Asset" FromRole="System" ToRole="Asset" />
+          <NavigationProperty Name="Histories" Relationship="Self.FK_History_System" FromRole="System" ToRole="History" />
+        </EntityType>
+        <EntityType Name="AssetType">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" />
+          <Property Name="Name" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="SortOrder" Type="Int32" Nullable="false" />
+          <Property Name="Active" Type="Boolean" Nullable="false" />
+        </EntityType>
+        <Association Name="FK_History_Asset">
+          <End Role="Asset" Type="Self.Asset" Multiplicity="1" />
+          <End Role="History" Type="Self.History" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Asset">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="History">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Journey_Asset">
+          <End Role="Asset" Type="Self.Asset" Multiplicity="1" />
+          <End Role="Journey" Type="Self.Journey" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Asset">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Journey">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Logfiles_Asset">
+          <End Role="Asset" Type="Self.Asset" Multiplicity="1" />
+          <End Role="Logfile" Type="Self.Logfile" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Asset">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Logfile">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Profile_Asset">
+          <End Role="Asset" Type="Self.Asset" Multiplicity="1" />
+          <End Role="Profile" Type="Self.Profile" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Asset">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Profile">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_System_Asset">
+          <End Role="Asset" Type="Self.Asset" Multiplicity="1" />
+          <End Role="System" Type="Self.System" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Asset">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="System">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_History_Profile">
+          <End Role="Profile" Type="Self.Profile" Multiplicity="1" />
+          <End Role="History" Type="Self.History" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Profile">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="History">
+              <PropertyRef Name="ProfileID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_History_System">
+          <End Role="System" Type="Self.System" Multiplicity="1" />
+          <End Role="History" Type="Self.History" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="System">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="History">
+              <PropertyRef Name="SystemID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Journey_End">
+          <End Role="History" Type="Self.History" Multiplicity="0..1" />
+          <End Role="Journey" Type="Self.Journey" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="History">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Journey">
+              <PropertyRef Name="HistoryEndID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Journey_Start">
+          <End Role="History" Type="Self.History" Multiplicity="0..1" />
+          <End Role="Journey" Type="Self.Journey" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="History">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Journey">
+              <PropertyRef Name="HistoryStartID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Journey_Profile">
+          <End Role="Profile" Type="Self.Profile" Multiplicity="0..1" />
+          <End Role="Journey" Type="Self.Journey" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Profile">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Journey">
+              <PropertyRef Name="ProfileID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Logfiles_Profile">
+          <End Role="Profile" Type="Self.Profile" Multiplicity="1" />
+          <End Role="Logfile" Type="Self.Logfile" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Profile">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Logfile">
+              <PropertyRef Name="ProfileID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="EDDataEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="C__RefactorLog" EntityType="Self.C__RefactorLog" />
+          <EntitySet Name="Assets" EntityType="Self.Asset" />
+          <EntitySet Name="Histories" EntityType="Self.History" />
+          <EntitySet Name="Journeys" EntityType="Self.Journey" />
+          <EntitySet Name="Logfiles" EntityType="Self.Logfile" />
+          <EntitySet Name="Profiles" EntityType="Self.Profile" />
+          <EntitySet Name="Systems" EntityType="Self.System" />
+          <EntitySet Name="AssetTypes" EntityType="Self.AssetType" />
+          <AssociationSet Name="FK_History_Asset" Association="Self.FK_History_Asset">
+            <End Role="Asset" EntitySet="Assets" />
+            <End Role="History" EntitySet="Histories" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Journey_Asset" Association="Self.FK_Journey_Asset">
+            <End Role="Asset" EntitySet="Assets" />
+            <End Role="Journey" EntitySet="Journeys" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Logfiles_Asset" Association="Self.FK_Logfiles_Asset">
+            <End Role="Asset" EntitySet="Assets" />
+            <End Role="Logfile" EntitySet="Logfiles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Profile_Asset" Association="Self.FK_Profile_Asset">
+            <End Role="Asset" EntitySet="Assets" />
+            <End Role="Profile" EntitySet="Profiles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_System_Asset" Association="Self.FK_System_Asset">
+            <End Role="Asset" EntitySet="Assets" />
+            <End Role="System" EntitySet="Systems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_History_Profile" Association="Self.FK_History_Profile">
+            <End Role="Profile" EntitySet="Profiles" />
+            <End Role="History" EntitySet="Histories" />
+          </AssociationSet>
+          <AssociationSet Name="FK_History_System" Association="Self.FK_History_System">
+            <End Role="System" EntitySet="Systems" />
+            <End Role="History" EntitySet="Histories" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Journey_End" Association="Self.FK_Journey_End">
+            <End Role="History" EntitySet="Histories" />
+            <End Role="Journey" EntitySet="Journeys" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Journey_Start" Association="Self.FK_Journey_Start">
+            <End Role="History" EntitySet="Histories" />
+            <End Role="Journey" EntitySet="Journeys" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Journey_Profile" Association="Self.FK_Journey_Profile">
+            <End Role="Profile" EntitySet="Profiles" />
+            <End Role="Journey" EntitySet="Journeys" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Logfiles_Profile" Association="Self.FK_Logfiles_Profile">
+            <End Role="Profile" EntitySet="Profiles" />
+            <End Role="Logfile" EntitySet="Logfiles" />
+          </AssociationSet>
+          <FunctionImport Name="AddAsset">
+            <Parameter Name="ID" Mode="InOut" Type="Int32" />
+            <Parameter Name="AssetTypeID" Mode="In" Type="Int32" />
+            <Parameter Name="Description" Mode="In" Type="String" />
+            <Parameter Name="ParentID" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="AddLogFile">
+            <Parameter Name="Id" Mode="InOut" Type="Int32" />
+            <Parameter Name="ProfileID" Mode="In" Type="Int32" />
+            <Parameter Name="Filename" Mode="In" Type="String" />
+            <Parameter Name="FileDate" Mode="In" Type="DateTime" />
+            <Parameter Name="LastParse" Mode="In" Type="DateTime" />
+            <Parameter Name="LinesParsed" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="AddProfile">
+            <Parameter Name="Id" Mode="InOut" Type="Int32" />
+            <Parameter Name="SecurityToken" Mode="InOut" Type="String" />
+            <Parameter Name="TokenExpiry" Mode="InOut" Type="DateTime" />
+            <Parameter Name="Commander" Mode="In" Type="String" />
+            <Parameter Name="Email" Mode="In" Type="String" />
+            <Parameter Name="Password" Mode="In" Type="String" />
+          </FunctionImport>
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="EDDataModelStoreContainer" CdmEntityContainer="EDDataEntities">
+          <EntitySetMapping Name="C__RefactorLog">
+            <EntityTypeMapping TypeName="EDDataModel.C__RefactorLog">
+              <MappingFragment StoreEntitySet="__RefactorLog">
+                <ScalarProperty Name="OperationKey" ColumnName="OperationKey" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Assets">
+            <EntityTypeMapping TypeName="EDDataModel.Asset">
+              <MappingFragment StoreEntitySet="Asset">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="ItemTypeID" ColumnName="ItemTypeID" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="Deleted" ColumnName="Deleted" />
+                <ScalarProperty Name="ParentID" ColumnName="ParentID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Histories">
+            <EntityTypeMapping TypeName="EDDataModel.History">
+              <MappingFragment StoreEntitySet="History">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="ProfileID" ColumnName="ProfileID" />
+                <ScalarProperty Name="Date" ColumnName="Date" />
+                <ScalarProperty Name="SystemID" ColumnName="SystemID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Journeys">
+            <EntityTypeMapping TypeName="EDDataModel.Journey">
+              <MappingFragment StoreEntitySet="Journey">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="ProfileID" ColumnName="ProfileID" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="HistoryStartID" ColumnName="HistoryStartID" />
+                <ScalarProperty Name="HistoryEndID" ColumnName="HistoryEndID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Logfiles">
+            <EntityTypeMapping TypeName="EDDataModel.Logfile">
+              <MappingFragment StoreEntitySet="Logfile">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="ProfileID" ColumnName="ProfileID" />
+                <ScalarProperty Name="LogfileName" ColumnName="LogfileName" />
+                <ScalarProperty Name="LogFileDate" ColumnName="LogFileDate" />
+                <ScalarProperty Name="LastParsed" ColumnName="LastParsed" />
+                <ScalarProperty Name="LinesParsed" ColumnName="LinesParsed" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Profiles">
+            <EntityTypeMapping TypeName="EDDataModel.Profile">
+              <MappingFragment StoreEntitySet="Profile">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Commander" ColumnName="Commander" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="EmailValidated" ColumnName="EmailValidated" />
+                <ScalarProperty Name="Password" ColumnName="Password" />
+                <ScalarProperty Name="SecurityToken" ColumnName="SecurityToken" />
+                <ScalarProperty Name="TokenExpiry" ColumnName="TokenExpiry" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Systems">
+            <EntityTypeMapping TypeName="EDDataModel.System">
+              <MappingFragment StoreEntitySet="System">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="X" ColumnName="X" />
+                <ScalarProperty Name="Y" ColumnName="Y" />
+                <ScalarProperty Name="Z" ColumnName="Z" />
+                <ScalarProperty Name="Added" ColumnName="Added" />
+                <ScalarProperty Name="Validated" ColumnName="Validated" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AssetTypes">
+            <EntityTypeMapping TypeName="EDDataModel.AssetType">
+              <MappingFragment StoreEntitySet="AssetType">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <FunctionImportMapping FunctionImportName="AddAsset" FunctionName="EDDataModel.Store.AddAsset" />
+          <FunctionImportMapping FunctionImportName="AddLogFile" FunctionName="EDDataModel.Store.AddLogFile" />
+          <FunctionImportMapping FunctionImportName="AddProfile" FunctionName="EDDataModel.Store.AddProfile" />
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
