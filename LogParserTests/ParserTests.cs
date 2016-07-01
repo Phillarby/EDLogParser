@@ -11,11 +11,11 @@ namespace LogParser.Tests
     [TestClass()]
     public class ParserTests
     {
-        [TestMethod()]
-        public void ParseFileTest()
-        {
-            Parser p = new Parser("C:\\EDLOGS\\");
-        }
+        //[TestMethod()]
+        //public void ParseFileTest()
+        //{
+        //    Parser p = new Parser("C:\\EDLOGS\\");
+        //}
 
         //[TestMethod()]
         //public void ParseFileTest()

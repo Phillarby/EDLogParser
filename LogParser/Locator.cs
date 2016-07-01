@@ -20,6 +20,11 @@ namespace LogParser
             get; private set;
         }
         
+        public string AppDataFolderPath
+        {
+            get { return Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData); }
+        }
+
         /// <summary>
         /// Standard constructor intiaition searhc for applicaiton folders
         /// </summary>

@@ -42,6 +42,7 @@ namespace LogParser
             //Create XML file node
             XmlElement ret = _doc.CreateElement(string.Empty, "File", string.Empty);
             XmlAttribute filename = _doc.CreateAttribute("Filename");
+            XmlAttribute lines = _doc.CreateAttribute("Lines");
 
             filename.Value = f.Name;
             ret.Attributes.Append(filename);
@@ -61,7 +62,7 @@ namespace LogParser
             while (!reader.EndOfStream)
             {
                 //Add a new XML element if the line contains useful data
-                var lineContent = ProcessLine(reader.ReadLine(), line);
+                var lineContent = ProcessLine(reader.ReadLine(), line, f.Name);
                 if (lineContent != null)
                     ret.AppendChild(lineContent);
 
@@ -69,6 +70,10 @@ namespace LogParser
                 //Increment line counter
                 line++;
             }
+
+            //Add line count
+            lines.Value = line.ToString();
+            ret.Attributes.Append(lines);
 
             //Clean up and close
             reader.Close();
@@ -79,7 +84,7 @@ namespace LogParser
             return ret;
         }
 
-        private XmlElement ProcessLine(string line, int LineNumber)
+        private XmlElement ProcessLine(string line, int LineNumber, string Filename)
         {
             XmlElement ret;
             LineType lineType;
@@ -114,6 +119,14 @@ namespace LogParser
             }
 
             _linesParsed = LineNumber;
+
+            if (ret != null)
+            {
+                //Apply a unique identifer to use a primary key for the data row
+                XmlAttribute Id = _doc.CreateAttribute("Id");
+                Id.Value = Filename.Substring(7, 12) + Filename.Substring(20, 2) + LineNumber.ToString();
+                ret.Attributes.Append(Id);
+            }
 
             return ret;
         }

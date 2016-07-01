@@ -1,31 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 using System.Xml;
 
 namespace LogParser
 {
+    public delegate void NewLineProcessedEventHandler(object sender, NewLineEventArgs e);
+    public delegate void StopPublishEventHandler(object sender, EventArgs e);
+
     class Program
     {
-        public static XmlDocument x;
+        //private XmlDocument x;
+        private Locator L;
+        private Parser P;
+        private DataSet FileData;
 
+        public static event NewLineProcessedEventHandler NewLineProcessed;
+        public static event StopPublishEventHandler StopPublish;
+        
         static void Main(string[] args)
         {
-            Locator L = new Locator();
-            Parser P = new Parser();
+            new Program().go();
+        }
 
-            P.ScreenshotPath = L.ScreenshotFolder;
-
-            //Create XML Output 
-            x = new XmlDocument();
-            XmlDeclaration xmlDeclaration = x.CreateXmlDeclaration("1.0", "UTF-8", null);
-            XmlElement root = x.CreateElement("EDData");
-            x.AppendChild(root);
-            x.InsertBefore(xmlDeclaration, root);
-
+        private void CheckNetlog()
+        {
             //Enable netlogging if not already enabled
             Console.Write("Checking netlog is enabled: ");
             if (!L.IsLoggingEnabled())
@@ -37,6 +42,20 @@ namespace LogParser
             {
                 Console.WriteLine("OK.");
             }
+        }
+
+        /// <summary>
+        /// Get all data from the current netlog files
+        /// </summary>
+        /// <returns></returns>
+        public XmlDocument getNetLogData()
+        {
+            //Create XML file and root
+            var x = new XmlDocument();
+            XmlDeclaration xmlDeclaration = x.CreateXmlDeclaration("1.0", "UTF-8", null);
+            XmlElement root = x.CreateElement("Netlogs");
+            x.AppendChild(root);
+            x.InsertBefore(xmlDeclaration, root);
 
             //Get netlog files
             var logs = L.getNetlogs();
@@ -48,15 +67,112 @@ namespace LogParser
                 root.AppendChild(f);
             }
 
-            //Write to console
+            return x;
+        }
+
+        //Sets all columns of the specified name to be the primary key of all tables in the dataset
+        private void setPrimaryKey(DataSet d, string ColumnName)
+        {
+            foreach (DataTable dt in d.Tables)
+            {
+                if (dt.Columns.Contains(ColumnName))
+                {
+                    dt.PrimaryKey = new DataColumn[] { dt.Columns[ColumnName] };
+                }
+            }
+        }
+
+        public void go()
+        {
+            //Instantiate file locater and file parser objects
+            L = new Locator();
+            P = new Parser();
+
+            //Get folder paths
+            var Appfolder = System.IO.Directory.CreateDirectory(Path.Combine(L.AppDataFolderPath, "EDNetlogParser"));
+            string XmlPath = Path.Combine(Appfolder.FullName, "NetlogData.xml");
+            var XsdPath = Path.Combine(Appfolder.FullName, "NetlogData.xsd");
+
+            //Check netlogging in enabled
+            CheckNetlog();
+
+            //Set the local save save for screenshot parsing
+            P.ScreenshotPath = L.ScreenshotFolder;
+
+            //Load last saved state
+            var Xs = new XmlDocument();
+            if (File.Exists(XmlPath)) { Xs.Load(XmlPath); }
+            var xsRdr = new XmlNodeReader(Xs);
+            var LastState = new DataSet();
+            LastState.ReadXml(xsRdr);
+            setPrimaryKey(LastState, "Id");
+
+            //Get all current netlog data in XML format
+            var x = getNetLogData();
+
+            //Create Dataset from XML data
+            FileData = new DataSet();
+            var xRdr = new XmlNodeReader(x);
+            FileData.ReadXml(xRdr);
+            setPrimaryKey(FileData, "Id");
+
+            LastState.Merge(FileData);
+            LastState.AcceptChanges();
+
+            //Write netlog content to console
             XmlTextWriter writer = new XmlTextWriter(Console.Out);
             writer.Formatting = Formatting.Indented;
-            x.WriteTo(writer);
+
+            LastState.WriteXml(writer);
             writer.Flush();
             Console.WriteLine();
 
-            Console.ReadLine();
+            //Delete last state files
+            File.Delete(XmlPath);
+            File.Delete(XsdPath);
 
+            //Save dataset to filesystem - XML
+            LastState.WriteXml(XmlPath);
+            LastState.WriteXmlSchema(XsdPath);
+
+            //Wait to close console
+            Console.ReadLine();
         }
+
+        //public void CreateHttpPublisher()
+        //{
+        //    //Create a publisher in a new thread
+        //    string[] endpoints = new string[] { "http://localhost/EDData/" };
+        //    Thread pubThread = new Thread(() => new Publisher(endpoints, 80));
+        //    pubThread.Start();
+
+        //    int i = 0;
+
+        //    while (i < 10)
+        //    {
+        //        Console.ReadLine();
+
+        //        i++;
+        //        Console.WriteLine(i);
+
+        //        var e = new NewLineEventArgs();
+        //        e.Data = i.ToString();
+
+        //        if (NewLineProcessed != null)
+        //            NewLineProcessed(this, e);
+        //    }
+
+        //    //Close http stream
+        //    if (StopPublish != null)
+        //        StopPublish(this, new EventArgs());
+        //}
     }
+
+    
+
+    public class NewLineEventArgs : EventArgs
+    {
+        public string Data { get; set; }
+    }
+
 }

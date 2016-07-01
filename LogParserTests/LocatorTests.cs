@@ -11,17 +11,17 @@ namespace LogParser.Tests
     [TestClass()]
     public class LocatorTests
     {
-        [TestMethod()]
-        public void FindLogFolderTest()
-        {
-            var log = Locator.FindProductFolder();
-        }
+        //[TestMethod()]
+        //public void FindLogFolderTest()
+        //{
+        //    var log = Locator.FindProductFolder();
+        //}
 
-        [TestMethod()]
-        public void getNetlogsTest()
-        {
-            Locator.AppFolderPath = Locator.FindProductFolder();
-            var netlogs = Locator.getNetlogs();
-        }
+        //[TestMethod()]
+        //public void getNetlogsTest()
+        //{
+        //    Locator.AppFolderPath = Locator.FindProductFolder();
+        //    var netlogs = Locator.getNetlogs();
+        //}
     }
 }
