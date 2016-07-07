@@ -5,11 +5,14 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows.Media.Media3D;
 using System.Xml;
+using System.Collections.Generic;
 
 namespace LogParser
 {
     public class Parser
     {
+        private string dateFormat = "yyyyMMddTHH:mm:ss";
+
         public enum LineType
         {
             Header,
@@ -28,30 +31,95 @@ namespace LogParser
         string _currentSystem;
         XmlDocument _doc;
         
-
-        public XmlElement ParseFile(FileInfo f, XmlDocument x)
+        public XmlElement ParseLauncherLog(FileInfo f, XmlDocument x)
         {
-            return ParseFile(f, x, 0);
+            List<string> emails = new List<string>();
+
+            //Open file for reading
+            var file = f.OpenRead();
+            StreamReader reader = new StreamReader(file);
+
+            //Create XML file node
+            XmlElement ret = _doc.CreateElement(string.Empty, "Commander", string.Empty);
+
+            //Read lines
+            List<string> cmdrs = new List<string>();
+
+            //Regex for identifying email addresses from log file
+            string Pattern =
+                @"(([\w-]+\.)+[\w-]+|([a-zA-Z]{1}|[\w-]{2,}))@"
+                + @"((([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\.([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\."
+                + @"([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\.([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])){1}|"
+                + @"([a-zA-Z]+[\w-]+\.)+[a-zA-Z]{2,4})";
+
+            //Run the regex and get matches
+            Regex r = new Regex(Pattern, RegexOptions.IgnoreCase);
+            
+
+            //Process the file line by line until done
+            while (!reader.EndOfStream)
+            {
+                //Add a new XML element if the line contains useful data
+                var l = reader.ReadLine();
+
+                //If the line is a successful authentication line then process
+                if (l.Contains("\"action\" : \"Authenticated\", \"user\" :"))
+                {
+                    //Extract any email addresses 
+                    Match m = r.Match(l);
+                    if (m.Captures.Count == 1)
+                    {
+                        //capture email if it has not been seen before
+                        var e = m.Captures[0].Value;
+                        if (!emails.Contains(e))
+                            emails.Add(e);
+                    }
+                }
+            }
+
+            foreach(string s in emails)
+            {
+                XmlElement cmdr = x.CreateElement("Account");
+                XmlAttribute a = x.CreateAttribute("Username", s);
+                cmdr.Attributes.Append(a);
+                ret.AppendChild(cmdr);
+            }
+
+
+            return ret;
         }
 
-        public XmlElement ParseFile(FileInfo f, XmlDocument x, int readLines)
+        public XmlElement ParseNetlogFile(FileInfo f, XmlDocument x)
+        {
+            return ParseNetlogFile(f, x, 0);
+        }
+
+        public XmlElement ParseNetlogFile(FileInfo f, XmlDocument x, int readLines)
         {
             int line = 0; // Line counter
             _doc = x;
 
             //Create XML file node
             XmlElement ret = _doc.CreateElement(string.Empty, "File", string.Empty);
+
+            //Create attribute for filename, number of lines and last modified date
             XmlAttribute filename = _doc.CreateAttribute("Filename");
             XmlAttribute lines = _doc.CreateAttribute("Lines");
+            XmlAttribute modified = _doc.CreateAttribute("Modified");
 
+            //Populate filename attribute
             filename.Value = f.Name;
             ret.Attributes.Append(filename);
+
+            //Populate modified date attribute
+            modified.Value = f.LastWriteTimeUtc.ToString(dateFormat);
+            ret.Attributes.Append(modified);
 
             //Open file for reading
             var file = f.OpenRead();
             StreamReader reader = new StreamReader(file);
 
-            //Navigate to start line
+            //Process lines from the start of the file to the specified end point
             for (int i = 0; i < readLines; i++)
             {
                 reader.ReadLine();
@@ -62,7 +130,7 @@ namespace LogParser
             while (!reader.EndOfStream)
             {
                 //Add a new XML element if the line contains useful data
-                var lineContent = ProcessLine(reader.ReadLine(), line, f.Name);
+                var lineContent = ProcessNetlogLine(reader.ReadLine(), line, f.Name);
                 if (lineContent != null)
                     ret.AppendChild(lineContent);
 
@@ -84,7 +152,7 @@ namespace LogParser
             return ret;
         }
 
-        private XmlElement ProcessLine(string line, int LineNumber, string Filename)
+        private XmlElement ProcessNetlogLine(string line, int LineNumber, string Filename)
         {
             XmlElement ret;
             LineType lineType;
@@ -142,7 +210,7 @@ namespace LogParser
 
                 //Add element attributes
                 XmlAttribute ts = _doc.CreateAttribute("TS");
-                ts.Value = _fileDate.ToString("yyyy-MM-ddTHH:mm:ss");
+                ts.Value = _fileDate.ToString(dateFormat);
 
                 ret.Attributes.Append(ts);
             }
@@ -167,7 +235,7 @@ namespace LogParser
                     XmlAttribute y = _doc.CreateAttribute("Y");
                     XmlAttribute z = _doc.CreateAttribute("Z");
 
-                    ts.Value = Time.ToString("yyyy-MM-ddTHH:mm:ss");
+                    ts.Value = Time.ToString(dateFormat);
                     x.Value = Pos.X.ToString();
                     y.Value = Pos.Y.ToString();
                     z.Value = Pos.Z.ToString();
@@ -189,7 +257,7 @@ namespace LogParser
 
                 //Add element attributes
                 XmlAttribute ts = _doc.CreateAttribute("TS");
-                ts.Value = Time.ToString("yyyy-MM-ddTHH:mm:ss");
+                ts.Value = Time.ToString(dateFormat);
                 ret.Attributes.Append(ts);
             }
 
@@ -199,6 +267,7 @@ namespace LogParser
         private DateTime ReadHeaderLocalDateTime(string Line)
         {
             string Pattern = @"([0-9]*\-){2}[0-9]{2}-[0-9]{2}:[0-9]{2}";
+
 
             //Run the regex and get matches
             Regex r = new Regex(Pattern, RegexOptions.IgnoreCase);

@@ -10,16 +10,36 @@ namespace LogParser
 {
     public class Locator
     {
-        public string AppFolderPath
+        /// <summary>
+        /// Path of current active game installation folder
+        /// </summary>
+        private string AppFolder
         {
-            get; private set;
+            get; set;
         }
 
+        /// <summary>
+        /// Path of the folder containing the launcher logs
+        /// </summary>
+        private string ClientLogFolder
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// Screenshot save folder
+        /// </summary>
         public string ScreenshotFolder
         {
-            get; private set;
+            get { return getScreenshotFolder(); }
         }
         
+        /// <summary>
+        
+
+        /// <summary>
+        /// Accessor for environment variable
+        /// </summary>
         public string AppDataFolderPath
         {
             get { return Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData); }
@@ -30,7 +50,8 @@ namespace LogParser
         /// </summary>
         public Locator()
         {
-            AppFolderPath = FindProductFolder();
+            AppFolder = FindProductFolder();
+            ClientLogFolder = FindClientLogFolder();
         }
 
         /// <summary>
@@ -39,17 +60,25 @@ namespace LogParser
         /// <param name="AppFolder">Injected application folder path</param>
         public Locator(string AppFolder)
         {
-            AppFolderPath = AppFolder;
+            this.AppFolder = AppFolder;
+            ClientLogFolder = FindClientLogFolder();
         }
 
-        public string NetLogFolder
+        private string NetLogFolder
         {
-            get { return AppFolderPath + "\\Logs"; }
+            get { return AppFolder + "\\Logs"; }
         }
 
-        public string AppConfig()
+        private string AppConfig()
         {
-            return AppFolderPath + "\\AppConfig.xml";
+            return AppFolder + "\\AppConfig.xml";
+        }
+
+        public FileInfo getLauncherLog()
+        {
+            var dir = new DirectoryInfo(ClientLogFolder);
+            var f = dir.GetFiles().Where(x => x.Name == "Client.log").FirstOrDefault();
+            return f;
         }
 
         public FileInfo[] getNetlogs()
@@ -99,6 +128,16 @@ namespace LogParser
             doc.Save(AppConfig());
 
         }
+        private string getScreenshotFolder()
+        {
+            var userPath = Environment.GetEnvironmentVariable("USERPROFILE");
+            return userPath + @"\Pictures\Frontier Developments\Elite Dangerous\";
+        }
+
+        public string FindClientLogFolder()
+        {
+            return Directory.GetParent(AppFolder).Parent.FullName + "\\Logs";
+        }
 
         /// <summary>
         /// Find the best match for the game folder
@@ -106,21 +145,17 @@ namespace LogParser
         /// <returns></returns>
         public string FindProductFolder()
         {
-            
-            var userPath = Environment.GetEnvironmentVariable("USERPROFILE");
-            ScreenshotFolder = userPath + @"\Pictures\Frontier Developments\Elite Dangerous\";
-
-            var steamPath = @"C:\program files (x86)\Steam\steamapps\common\Elite Dangerous\Products\";
-            var frontierPath = userPath + @"\AppData\Local\Frontier_Developments\Products\";
-            var progFilesPath = @"C:\Program Files (x86)\Frontier\Products\";
+            var steamPath = "C:\\program files (x86)\\Steam\\steamapps\\common\\Elite Dangerous\\Products\\";
+            var frontierPath = AppDataFolderPath + "\\Frontier_Developments\\Products\\";
+            var progFilesPath = "C:\\Program Files (x86)\\Frontier\\Products\\";
             
 
-            //Check if steam path exists
+            //Check which game install paths exist
             bool steam = System.IO.Directory.Exists(steamPath);
             bool frontier = System.IO.Directory.Exists(frontierPath);
             bool progFiles = System.IO.Directory.Exists(progFilesPath);
 
-            //Identify all non-beta game folders.
+            //Get details for all non-beta game folders.
             //Current Folder Names: elite-dangerous-64 or FORC-FDEV-D-1010
             List<string> gameFolders = new List<string>();
             if (steam)
@@ -150,6 +185,7 @@ namespace LogParser
                 );
             }
 
+            //Find the most liekly candidate for the currently used installation
             if (gameFolders.Count == 0)
                 return string.Empty;
             else
@@ -157,6 +193,12 @@ namespace LogParser
 
         }
 
+        /// <summary>
+        /// Determine the best installation by finding the most recently created log file.  Assume this folder is the current install
+        /// that is being used
+        /// </summary>
+        /// <param name="Folders"></param>
+        /// <returns></returns>
         private string PickBestFolder(List<string> Folders)
         {
             //Find the most recently used of all the game folders

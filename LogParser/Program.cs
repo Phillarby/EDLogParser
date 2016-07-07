@@ -16,7 +16,9 @@ namespace LogParser
 
     class Program
     {
-        //private XmlDocument x;
+        private XmlDocument xDocNetlog;
+        private XmlDocument xDocCliLog;
+
         private Locator L;
         private Parser P;
         private DataSet FileData;
@@ -45,25 +47,40 @@ namespace LogParser
         }
 
         /// <summary>
+        /// Get all data front eh launcher log files
+        /// </summary>
+        /// <returns></returns>
+        public XmlDocument getLauncherLogData(XmlDocument x)
+        {
+            //Get XML root
+            var root = x.DocumentElement;
+
+            //Get xml elements to append
+            var log = L.getLauncherLog();
+            var c = P.ParseLauncherLog(log, x);
+
+            root.AppendChild(c);
+
+            return x;
+
+        }
+
+        /// <summary>
         /// Get all data from the current netlog files
         /// </summary>
         /// <returns></returns>
-        public XmlDocument getNetLogData()
+        public XmlDocument getNetLogData(XmlDocument x)
         {
-            //Create XML file and root
-            var x = new XmlDocument();
-            XmlDeclaration xmlDeclaration = x.CreateXmlDeclaration("1.0", "UTF-8", null);
-            XmlElement root = x.CreateElement("Netlogs");
-            x.AppendChild(root);
-            x.InsertBefore(xmlDeclaration, root);
+            //Get the document root
+            var root = x.DocumentElement;
 
             //Get netlog files
             var logs = L.getNetlogs();
 
-            //Parse Logfiles
+            //Parse each log file
             foreach (System.IO.FileInfo fi in logs)
             {
-                XmlElement f = P.ParseFile(fi, x);
+                XmlElement f = P.ParseNetlogFile(fi, x);
                 root.AppendChild(f);
             }
 
@@ -80,6 +97,18 @@ namespace LogParser
                     dt.PrimaryKey = new DataColumn[] { dt.Columns[ColumnName] };
                 }
             }
+        }
+
+        private XmlDocument InstantiateXML()
+        {
+            //Create XML file with declaration and root
+            var x = new XmlDocument();
+            XmlDeclaration xmlDeclaration = x.CreateXmlDeclaration("1.0", "UTF-8", null);
+            XmlElement xRoot = x.CreateElement("EDLogs");
+            x.AppendChild(xRoot);
+            x.InsertBefore(xmlDeclaration, xRoot);
+
+            return x;
         }
 
         public void go()
@@ -107,12 +136,16 @@ namespace LogParser
             LastState.ReadXml(xsRdr);
             setPrimaryKey(LastState, "Id");
 
+            xDocNetlog = InstantiateXML();
+            xDocCliLog = InstantiateXML();
+
             //Get all current netlog data in XML format
-            var x = getNetLogData();
+            xDocNetlog = getNetLogData(xDocNetlog);
+            //xDocNetlog = getLauncherLogData(xDocCliLog);
 
             //Create Dataset from XML data
             FileData = new DataSet();
-            var xRdr = new XmlNodeReader(x);
+            var xRdr = new XmlNodeReader(xDocNetlog);
             FileData.ReadXml(xRdr);
             setPrimaryKey(FileData, "Id");
 
