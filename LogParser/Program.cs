@@ -68,14 +68,36 @@ namespace LogParser
         /// <summary>
         /// Get all data from the current netlog files
         /// </summary>
+        /// <param name="x">The document to be populated</param>
+        /// <param name="LastState">The last known state as unchanged files can be excluded</param>
         /// <returns></returns>
-        public XmlDocument getNetLogData(XmlDocument x)
+        public XmlDocument getNetLogData(XmlDocument x, DataSet LastState)
         {
+            //Get netlog files
+            FileInfo[] logs; 
+
             //Get the document root
             var root = x.DocumentElement;
 
-            //Get netlog files
-            var logs = L.getNetlogs();
+            //Get a list of all previously encoutered and processed files so they can be ignored unless subsequently changed
+            Dictionary<string, DateTime> ParsedFiles = new Dictionary<string, DateTime>();
+
+            //Ignore if not last state data exists
+            if (LastState.Tables.Count != 0)
+            {
+                var PastFiles = LastState.Tables["File"].Select();
+                foreach (DataRow d in PastFiles)
+                {
+                    ParsedFiles.Add(d["Filename"].ToString(), DateTime.ParseExact(d["Modified"].ToString(), "yyyyMMddHHmmss", null));
+                }
+
+                logs = L.getNetlogs().Where(f => ParsedFiles[f.Name] != f.LastWriteTimeUtc.TrimMilliseconds()).ToArray<FileInfo>();
+            }
+            else
+            {
+                logs = L.getNetlogs();
+            }
+            
 
             //Parse each log file
             foreach (System.IO.FileInfo fi in logs)
@@ -86,6 +108,8 @@ namespace LogParser
 
             return x;
         }
+
+        
 
         //Sets all columns of the specified name to be the primary key of all tables in the dataset
         private void setPrimaryKey(DataSet d, string ColumnName)
@@ -140,7 +164,7 @@ namespace LogParser
             xDocCliLog = InstantiateXML();
 
             //Get all current netlog data in XML format
-            xDocNetlog = getNetLogData(xDocNetlog);
+            xDocNetlog = getNetLogData(xDocNetlog, LastState);
             //xDocNetlog = getLauncherLogData(xDocCliLog);
 
             //Create Dataset from XML data

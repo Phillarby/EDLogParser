@@ -212,7 +212,7 @@ namespace LogParser
 
                 foreach(System.IO.FileInfo fi in files)
                 {
-                    var last = fi.LastWriteTime;
+                    var last = fi.LastWriteTimeUtc;
                     if  (last > MostRecentDate)
                     {
                         MostRecentDate = last;

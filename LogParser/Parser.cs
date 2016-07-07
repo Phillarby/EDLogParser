@@ -11,7 +11,7 @@ namespace LogParser
 {
     public class Parser
     {
-        private string dateFormat = "yyyyMMddTHH:mm:ss";
+        private string dateFormat = "yyyyMMddHHmmss";
 
         public enum LineType
         {
