@@ -8,7 +8,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>4.1</ProjectVersion>
     <ProjectGuid>{c08595f8-f374-4221-aaba-03ae43b494c5}</ProjectGuid>
-    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql120DatabaseSchemaProvider</DSP>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider</DSP>
     <OutputType>Database</OutputType>
     <RootPath>
     </RootPath>
@@ -62,6 +62,7 @@
     <Folder Include="SProcs" />
     <Folder Include="LookupTables" />
     <Folder Include="PostDeployment" />
+    <Folder Include="Misc" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="AssetTables\Asset.sql" />
@@ -82,5 +83,8 @@
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="PostDeployment\AssetTypes.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Misc\Database Details.sql" />
   </ItemGroup>
 </Project>

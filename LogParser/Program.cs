@@ -82,22 +82,23 @@ namespace LogParser
             //Get a list of all previously encoutered and processed files so they can be ignored unless subsequently changed
             Dictionary<string, DateTime> ParsedFiles = new Dictionary<string, DateTime>();
 
-            //Ignore if not last state data exists
+            //Get current netlog files
+            logs = L.getNetlogs();
+
+            //Ignore if no last state data exists
             if (LastState.Tables.Count != 0)
             {
                 var PastFiles = LastState.Tables["File"].Select();
+
                 foreach (DataRow d in PastFiles)
                 {
                     ParsedFiles.Add(d["Filename"].ToString(), DateTime.ParseExact(d["Modified"].ToString(), "yyyyMMddHHmmss", null));
                 }
 
-                logs = L.getNetlogs().Where(f => ParsedFiles[f.Name] != f.LastWriteTimeUtc.TrimMilliseconds()).ToArray<FileInfo>();
+                //Add any netlog files that have been updated since the last state was established
+                logs = L.getNetlogs().Where(f => ParsedFiles.Keys.Contains(f.Name) && ParsedFiles[f.Name] != f.LastWriteTimeUtc.TrimMilliseconds()).ToArray<FileInfo>();
             }
-            else
-            {
-                logs = L.getNetlogs();
-            }
-            
+
 
             //Parse each log file
             foreach (System.IO.FileInfo fi in logs)
@@ -108,8 +109,6 @@ namespace LogParser
 
             return x;
         }
-
-        
 
         //Sets all columns of the specified name to be the primary key of all tables in the dataset
         private void setPrimaryKey(DataSet d, string ColumnName)
