@@ -137,49 +137,55 @@ namespace LogParser
         public void go()
         {
             //Instantiate file locater and file parser objects
-            L = new Locator();
-            P = new Parser();
+            L = new Locator();  //File locator
+            P = new Parser();   //Netlog parser
 
-            //Get folder paths
-            var Appfolder = System.IO.Directory.CreateDirectory(Path.Combine(L.AppDataFolderPath, "EDNetlogParser"));
-            string XmlPath = Path.Combine(Appfolder.FullName, "NetlogData.xml");
-            var XsdPath = Path.Combine(Appfolder.FullName, "NetlogData.xsd");
+            //Get output paths
+            var Appfolder = System.IO.Directory.CreateDirectory(Path.Combine(L.AppDataFolderPath, "EDNetlogParser")); //Output foler
+            string XmlPath = Path.Combine(Appfolder.FullName, "NetlogData.xml"); //XML data 
+            var XsdPath = Path.Combine(Appfolder.FullName, "NetlogData.xsd");    //XML Schema
 
-            //Check netlogging in enabled
+            //Check netlogging in enabled and enable if not
             CheckNetlog();
 
-            //Set the local save save for screenshot parsing
+            //Get the local save path for screenshots and give to the parser
             P.ScreenshotPath = L.ScreenshotFolder;
 
-            //Load last saved state
-            var Xs = new XmlDocument();
-            if (File.Exists(XmlPath)) { Xs.Load(XmlPath); }
-            var xsRdr = new XmlNodeReader(Xs);
-            var LastState = new DataSet();
-            LastState.ReadXml(xsRdr);
-            setPrimaryKey(LastState, "Id");
+            //Load the last saved state into XML file and ADO.Net dataset
+            //This includes all previously encountered netlog lines that have been recorded locally
+            var xLastState = new XmlDocument();
+            var dLastState = new DataSet();
+            if (File.Exists(XmlPath)) { xLastState.Load(XmlPath); } //If no previous file exists then assume this is the first execution so don't try to load previous state
+            var rLastState = new XmlNodeReader(xLastState); //get XML reader
+            dLastState.ReadXml(rLastState);  //Populate ADO.net dataset from XML info
+            setPrimaryKey(dLastState, "Id"); //Set Id as primary key across all dataset tables.  This allows dataset merging in later steps
 
-            xDocNetlog = InstantiateXML();
-            xDocCliLog = InstantiateXML();
+            //Create XML documents for parsing current log files
+            xDocNetlog = InstantiateXML(); //For netlog files
+            xDocCliLog = InstantiateXML(); //For client log files
 
-            //Get all current netlog data in XML format
-            xDocNetlog = getNetLogData(xDocNetlog, LastState);
+            //Load data from logfiles into XML
+            xDocNetlog = getNetLogData(xDocNetlog, dLastState);
             //xDocNetlog = getLauncherLogData(xDocCliLog);
 
-            //Create Dataset from XML data
+            //Create Dataset from XML log data
             FileData = new DataSet();
             var xRdr = new XmlNodeReader(xDocNetlog);
             FileData.ReadXml(xRdr);
             setPrimaryKey(FileData, "Id");
 
-            LastState.Merge(FileData);
-            LastState.AcceptChanges();
+            var x = FileData.Tables["System"].Select();
+            var y = dLastState.Tables["System"].Select();
+
+            //Merge log file dataset into last state datasets.  This automatically dedupes.
+            dLastState.Merge(FileData);
+            dLastState.AcceptChanges();
 
             //Write netlog content to console
             XmlTextWriter writer = new XmlTextWriter(Console.Out);
             writer.Formatting = Formatting.Indented;
 
-            LastState.WriteXml(writer);
+            dLastState.WriteXml(writer);
             writer.Flush();
             Console.WriteLine();
 
@@ -188,13 +194,14 @@ namespace LogParser
             File.Delete(XsdPath);
 
             //Save dataset to filesystem - XML
-            LastState.WriteXml(XmlPath);
-            LastState.WriteXmlSchema(XsdPath);
+            dLastState.WriteXml(XmlPath);
+            dLastState.WriteXmlSchema(XsdPath);
 
             //Wait to close console
             Console.ReadLine();
         }
 
+        //Publisheh live data from netlog files via chunked http output for consumption by whatever wants it
         //public void CreateHttpPublisher()
         //{
         //    //Create a publisher in a new thread
